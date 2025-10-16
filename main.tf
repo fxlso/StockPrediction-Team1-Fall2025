@@ -26,19 +26,21 @@ module "subnet_group" {
 # RDS
 module "rds" {
   source               = "./modules/rds"
+  db_name              = var.db_name
   db_username          = var.db_username
   db_password          = var.db_password
   rds_sg_id            = module.security.rds_sg_id
-  wordpress_db_subnet_group_name = module.subnet_group.subnet_group_name
+  db_subnet_group_name = module.subnet_group.subnet_group_name
 }
 
 # EC2
 module "ec2" {
   source        = "./modules/ec2"
-  wordpress_db_endpoint = module.rds.db_endpoint
+  db_endpoint = module.rds.db_endpoint
   public_subnet_id = module.vpc.public_subnet_id
   db_username = var.db_username
   db_password = var.db_password
+  db_name = var.db_name
   key_name    = var.key_name
   ec2_sg_id   = module.security.ec2_sg_id
 }

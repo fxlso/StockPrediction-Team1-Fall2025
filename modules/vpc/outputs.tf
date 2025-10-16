@@ -1,5 +1,5 @@
 output "vpc_id" {
-  value = aws_vpc.wordpress_vpc.id
+  value = aws_vpc.stock_vpc.id
 }
 
 output "public_subnet_id" {

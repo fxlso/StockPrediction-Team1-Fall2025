@@ -10,6 +10,12 @@ variable "db_password" {
   sensitive   = true
 }
 
+variable "db_name" {
+  description = "Name of the WordPress database"
+  type        = string
+  default     = "stockdb"
+}
+
 variable "key_name" {
   description = "SSH key name for EC2"
   type        = string
