@@ -1,0 +1,45 @@
+# AMI Data Source
+data "aws_ami" "amazon_linux_2023" {
+  most_recent = true    # Get the latest version of the AMI
+  owners      = ["amazon"]  # Only accept Amazon-owned AMIs
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-2023*"]  # Filter for Amazon Linux 2023 AMIs
+  }
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]  # Hardware Virtual Machine AMIs only
+  }
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]  # EBS-backed instances only
+  }
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]  # 64-bit x86 architecture only
+  }
+}
+
+# WordPress EC2 Instance
+resource "aws_instance" "wordpress_ec2" {
+  ami                    = data.aws_ami.amazon_linux_2023.id  # Use the AMI we filtered above
+  instance_type          = "t2.micro"  # Free tier eligible instance type
+  subnet_id              = var.public_subnet_id  # Place in the public subnet
+  vpc_security_group_ids = [var.ec2_sg_id]  # Attach the EC2 security group
+  key_name               = var.key_name  # SSH key name from variable
+
+  # TODO: Pass in the 4 variables to the user data script
+  user_data = templatefile("wp_rds_install.sh", {
+    db_username = var.db_username
+    db_password = var.db_password
+    db_name     = "wordpressdb"
+    db_endpoint = var.wordpress_db_endpoint
+  })
+
+  tags = {
+    Name = "WordPress EC2 Instance"
+  }
+}
+
+

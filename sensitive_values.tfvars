@@ -1,6 +1,0 @@
-db_username = "admin"
-db_password = "password"
-db_name = ""
-aws_key_name = ""
-ec2_instance_type="t2.micro"
-db_instance_type="db.t3.micro"
