@@ -5,7 +5,6 @@ import {
     char,
     decimal,
     int,
-    json,
     mysqlEnum,
     mysqlTable,
     primaryKey,

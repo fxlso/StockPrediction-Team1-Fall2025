@@ -1,12 +1,21 @@
 import express, {type Express} from "express";
 import dotenv from "dotenv";
 import http from 'http';
-
+import tickerRouter from "./api/routes/ticker.js";
+import articleRouter from "./api/routes/article.js";
+import userRouter from "./api/routes/user.js";
 dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT || 5000;
 
+const TICKER_API_ROUTE = '/ticker';
+const ARTICLE_API_ROUTE = '/article';
+const USER_API_ROUTE = '/user';
+
+app.use(TICKER_API_ROUTE, tickerRouter);
+app.use(ARTICLE_API_ROUTE, articleRouter);
+app.use(USER_API_ROUTE, userRouter);
 
 app.use(express.json());
 
