@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "start": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node --loader ts-node/esm ./src/index.ts",
+    "dev": "node --watch --loader ts-node/esm ./src/index.ts"
   },
   "repository": {
     "type": "git",
