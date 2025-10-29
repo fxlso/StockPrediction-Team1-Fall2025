@@ -97,7 +97,7 @@ authRouter.get("/session", async (req: Request, res: Response) => {
     }
 
     return session.user;
-}
+});
 
 
 /**
@@ -109,34 +109,34 @@ async function getAuthorizationCode(
     req: Request,
     codeVerifier?: string, state?: string,
 ) {
-        const openIdClientConfig = await getClientConfig();
+    const openIdClientConfig = await getClientConfig();
 
-        // Get the current URL
-        const host =
-            req.get("x-forwarded-host") || req.get("host") || "localhost";
-        const protocol = req.get("x-forwarded-proto") || process.env.NODE_ENV === "production"
-            ? "https"
-            : "http";
-        const currentUrl = new URL(
-            `${protocol}://${host}${req.originalUrl}`,
+    // Get the current URL
+    const host =
+        req.get("x-forwarded-host") || req.get("host") || "localhost";
+    const protocol = req.get("x-forwarded-proto") || process.env.NODE_ENV === "production"
+        ? "https"
+        : "http";
+    const currentUrl = new URL(
+        `${protocol}://${host}${req.originalUrl}`,
+    );
+
+    try {
+        const tokenSet = await client.authorizationCodeGrant(
+            openIdClientConfig,
+            currentUrl,
+            {
+                pkceCodeVerifier: codeVerifier!,
+                expectedState: state!,
+            },
         );
-
-        try {
-            const tokenSet = await client.authorizationCodeGrant(
-                openIdClientConfig,
-                currentUrl,
-                {
-                    pkceCodeVerifier: codeVerifier!,
-                    expectedState: state!,
-                },
-            );
-            return tokenSet;
-        } catch (err: any) {
-            if (err.response && err.body) {
-                console.error("OAuth error response:", err.body);
-            }
-            console.error("Full error:", err);
-            throw err;
+        return tokenSet;
+    } catch (err: any) {
+        if (err.response && err.body) {
+            console.error("OAuth error response:", err.body);
         }
+        console.error("Full error:", err);
+        throw err;
     }
+}
 
