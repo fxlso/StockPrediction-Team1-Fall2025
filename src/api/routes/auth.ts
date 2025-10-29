@@ -1,7 +1,9 @@
 import express, { type Request, type Response } from "express";
 
 import * as client from 'openid-client'
-import { clientConfig, getClientConfig } from "../../lib/auth.js";
+import { clientConfig, getClientConfig, sessionOptions } from "../../lib/auth.js";
+import { createSession, createUser, getUserByEmail } from "../../db/db_api.js";
+import { randomUUID, randomBytes } from "crypto";
 
 export const authRouter = express.Router();
 
@@ -48,13 +50,34 @@ authRouter.get("/callback", async (req: Request, res: Response) => {
     res.clearCookie('auth_state');
 
     const tokenSet = await getAuthorizationCode(req, codeVerifier, authState);
-    const idToken = tokenSet.id_token;
 
-    console.log("ID Token:", idToken);
     const claims = tokenSet.claims();
-    const userInfo = await client.fetchUserInfo(await getClientConfig(), tokenSet.access_token, claims?.sub!)
-    console.log("User Info:", userInfo);
+    if (!claims?.email || typeof claims.email !== 'string') {
+        return res.status(400).send("Email claim is missing in the token");
+    }
 
+    let dbUser = await getUserByEmail(claims.email);
+    if (!dbUser) {
+        const userId = randomUUID();
+        dbUser = await createUser({
+            userId,
+            email: claims.email as string,
+        })
+    }
+
+    const sessionToken = randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + sessionOptions.ttl); // 7 days
+
+    await createSession(sessionToken, dbUser.userId, expiresAt);
+
+    res.cookie(sessionOptions.cookieName, sessionToken, {
+        httpOnly: true,
+        secure: sessionOptions.cookieOptions.secure,
+        maxAge: sessionOptions.ttl * 1000, // in milliseconds
+        sameSite: 'lax',
+
+    });
+    return res.redirect(clientConfig.post_login_route);
 
 });
 

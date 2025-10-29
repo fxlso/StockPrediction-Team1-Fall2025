@@ -12,7 +12,7 @@ export const clientConfig = {
     post_logout_redirect_uri: `${process.env.APP_URL!}`,
     response_type: "code",
     grant_type: "authorization_code",
-    post_login_route: `${process.env.APP_URL!}/member/home`,
+    post_login_route: `${process.env.APP_URL!}/`,
     login_forbidden_route: `${process.env.APP_URL!}/forbidden`,
     code_challenge_method: "S256",
 };

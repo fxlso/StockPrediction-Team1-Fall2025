@@ -43,6 +43,18 @@ export async function createUser(newUser: NewUser): Promise<User> {
 /**
  * Get a user by id.
  */
+export async function getUserById(userId: string): Promise<User | null> {
+    const rows = await db
+        .select()
+        .from(users)
+        .where(eq(users.userId, userId));
+
+    return rows[0] ?? null;
+}
+
+/**
+ * Get a user by id.
+ */
 export async function getUserByEmail(email: string): Promise<User | null> {
     const rows = await db
         .select()
@@ -55,19 +67,39 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 /**
  * Get a user by session token.
  */
-export async function getUserBySessionToken(sessionToken: string): Promise<User | null> {
-    const result = await db.select().from(sessions).innerJoin(
-        users,
-        eq(sessions.userId, users.userId)
-    ).where(
-        eq(sessions.sessionId, sessionToken)
-    ).limit(1);
+export async function getSessionById(sessionId: string): Promise<{ sessionId: string; userId: string; expiresAt: Date, user: User } | null> {
+    const rows = await db
+        .select({
+            sessionId: sessions.sessionId,
+            userId: sessions.userId,
+            expiresAt: sessions.expiresAt,
+            user: users,
+        })
+        .from(sessions)
+        .innerJoin(
+            users,
+            eq(sessions.userId, users.userId)
+        )
+        .where(eq(sessions.sessionId, sessionId));
 
-    if (result.length === 0) {
+    if (rows.length === 0) {
         return null;
     }
 
-    return result[0]?.users as User;
+    return rows[0] as { sessionId: string; userId: string; expiresAt: Date, user: User };
+}
+
+
+export async function createSession(sessionId: string, userId: string, expiresAt: Date): Promise<void> {
+    await db.insert(sessions).values({
+        sessionId,
+        userId,
+        expiresAt,
+    });
+}
+
+export async function deleteSession(sessionId: string): Promise<void> {
+    await db.delete(sessions).where(eq(sessions.sessionId, sessionId));
 }
 
 /**
