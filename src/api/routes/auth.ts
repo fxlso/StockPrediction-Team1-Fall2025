@@ -2,7 +2,7 @@ import express, { type Request, type Response } from "express";
 
 import * as client from 'openid-client'
 import { clientConfig, getClientConfig, sessionOptions } from "../../lib/auth.js";
-import { createSession, createUser, getUserByEmail } from "../../db/db_api.js";
+import { createSession, createUser, getSessionById, getUserByEmail } from "../../db/db_api.js";
 import { randomUUID, randomBytes } from "crypto";
 
 export const authRouter = express.Router();
@@ -79,6 +79,24 @@ authRouter.get("/callback", async (req: Request, res: Response) => {
     });
     return res.redirect(clientConfig.post_login_route);
 
+});
+
+authRouter.get("/session", async (req: Request, res: Response) => {
+    const sessionToken = req.cookies[sessionOptions.cookieName];
+    if (!sessionToken) {
+        return null;
+    }
+
+    const session = await getSessionById(sessionToken);
+    if (!session) {
+        return null;
+    }
+
+    if (session.expiresAt < new Date()) {
+        return null;
+    }
+
+    return session.user;
 });
 
 

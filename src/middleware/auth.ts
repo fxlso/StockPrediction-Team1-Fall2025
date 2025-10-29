@@ -18,6 +18,6 @@ export default async function auth(req: Request, res: Response, next: NextFuncti
     }
 
     // Attach user info to request object for downstream handlers
-    (req as any).user = session;
+    (req as any).user = session.user;
     next();
 }
