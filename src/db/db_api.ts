@@ -201,7 +201,7 @@ export async function getUserWatchlistTickers(userId: string): Promise<Ticker[]>
  * Get ticker ID by symbol
  * @param symbol The ticker symbol (i.e. AAPL or BTC)
  */
-export async function getTickerIdBySymbol(symbol: string): Promise<number | null> {
+export async function getTickerBySymbol(symbol: string): Promise<Ticker | null> {
     const rows = await db
         .select()
         .from(tickers)
@@ -210,7 +210,7 @@ export async function getTickerIdBySymbol(symbol: string): Promise<number | null
     if (rows.length === 0) {
         return null;
     }
-    return (rows[0] as Ticker).tickerId;
+    return rows[0] as Ticker;
 }
 
 /**
@@ -384,10 +384,13 @@ export async function getAllArticlesWithTickerSentiments(tickerSymbol?: string |
     let articlesRaw: any[];
 
     if (tickerSymbol) {
-        const tickerId = await getTickerIdBySymbol(tickerSymbol);
-        if (tickerId === null) {
+        const ticker = await getTickerBySymbol(tickerSymbol);
+
+        if (ticker === null) {
             return [];
         }
+
+        const tickerId = ticker.tickerId;
 
         // join to filter articles that have this ticker
         const rows = await db

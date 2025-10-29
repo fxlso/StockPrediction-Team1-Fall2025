@@ -3,21 +3,28 @@ import crypto from "crypto";
 import {
     createNewsArticle,
     doesNewsArticleIdExist, getAllArticlesWithTickerSentiments, getArticleTickerSentiments,
-    getTickerIdBySymbol,
+    getTickerBySymbol,
     upsertArticleTickerSentiment
 } from "../../db/db_api.js";
+import auth from "../../middleware/auth.js";
 
 const articleRouter = express.Router();
 
-articleRouter.get("/", async (req, res) => {
+articleRouter.get("/", auth, async (req, res) => {
     const articles = await getAllArticlesWithTickerSentiments(undefined);
     return res.json(articles);
 })
 
-articleRouter.get("/findSentiments/:tickerSymbol", async (req, res) => {
+articleRouter.get("/findSentiments/:tickerSymbol", auth, async (req, res) => {
     const symbol = req.params.tickerSymbol;
-    const tickerId = await getTickerIdBySymbol(symbol);
-    if (tickerId === null) {
+
+    if (symbol === undefined || symbol.trim().length === 0) {
+        return res.status(400).json({ error: "Missing or invalid tickerSymbol" });
+    }
+
+    const ticker = await getTickerBySymbol(symbol);
+
+    if (ticker === null) {
         return res.status(400).json({ error: "Invalid tickerSymbol; ticker not found" });
     }
 
@@ -35,7 +42,7 @@ articleRouter.get("/findSentiments/:tickerSymbol", async (req, res) => {
  * }
  * articleId is sha256(url) hex
  */
-articleRouter.post("/", async (req: Request, res: Response) => {
+articleRouter.post("/", auth, async (req: Request, res: Response) => {
     const { title, url, summary, publishedAt } = req.body;
 
     if (typeof url !== "string" || url.trim().length === 0) {
@@ -66,7 +73,6 @@ articleRouter.post("/", async (req: Request, res: Response) => {
         const m = publishedAt.match(compactRe);
         if (m) {
             const [, y, mo, d, hh, mm, ss] = m;
-            // Construct ISO UTC string (Z) to avoid host-local TZ ambiguity
             const iso = `${y}-${mo}-${d}T${hh}:${mm}:${ss}Z`;
             parsed = new Date(iso);
         } else {
@@ -114,7 +120,7 @@ articleRouter.post("/", async (req: Request, res: Response) => {
  *  relevanceScore?: string|number|null
  * }
  */
-articleRouter.post("/:articleId/tickers", async (req: Request, res: Response) => {
+articleRouter.post("/:articleId/tickers", auth, async (req: Request, res: Response) => {
     const articleId = req.params.articleId;
     const { tickerSymbol, tickerSentimentScore, tickerSentimentLabel, relevanceScore } = req.body;
 
@@ -122,11 +128,13 @@ articleRouter.post("/:articleId/tickers", async (req: Request, res: Response) =>
         return res.status(400).json({ error: "Missing or invalid tickerSymbol" });
     }
 
-    const tickerId = await getTickerIdBySymbol(tickerSymbol);
+    const ticker = await getTickerBySymbol(tickerSymbol);
 
-    if (tickerId === null) {
+    if (ticker === null) {
         return res.status(400).json({ error: "Invalid tickerSymbol; ticker not found" });
     }
+
+    const tickerId = ticker.tickerId;
 
     if (typeof articleId !== "string" || articleId.length === 0) {
         return res.status(400).json({ error: "Invalid articleId" });
@@ -162,7 +170,7 @@ articleRouter.post("/:articleId/tickers", async (req: Request, res: Response) =>
 /**
  * Get sentiments for all tickers on an article
  */
-articleRouter.get("/:articleId/tickers", async (req: Request, res: Response) => {
+articleRouter.get("/:articleId/tickers", auth, async (req: Request, res: Response) => {
     const articleId = req.params.articleId;
 
     if (typeof articleId !== "string" || articleId.length === 0) {
@@ -188,7 +196,7 @@ articleRouter.get("/:articleId/tickers", async (req: Request, res: Response) => 
  *  url: string
  * }
  */
-articleRouter.get("/findArticleId", async (req: Request, res: Response) => {
+articleRouter.get("/findArticleId", auth, async (req: Request, res: Response) => {
     const url = req.body.url;
 
     if (typeof url !== "string" || url.trim().length === 0) {
