@@ -2,7 +2,7 @@ import express, { type Request, type Response } from "express";
 
 import * as client from 'openid-client'
 import { clientConfig, getClientConfig, sessionOptions } from "../../lib/auth.js";
-import { createSession, createUser, getUserByEmail } from "../../db/db_api.js";
+import { createSession, createUser, getSessionById, getUserByEmail } from "../../db/db_api.js";
 import { randomUUID, randomBytes } from "crypto";
 
 export const authRouter = express.Router();
@@ -81,6 +81,24 @@ authRouter.get("/callback", async (req: Request, res: Response) => {
 
 });
 
+authRouter.get("/session", async (req: Request, res: Response) => {
+    const sessionToken = req.cookies[sessionOptions.cookieName];
+    if (!sessionToken) {
+        return null;
+    }
+
+    const session = await getSessionById(sessionToken);
+    if (!session) {
+        return null;
+    }
+
+    if (session.expiresAt < new Date()) {
+        return null;
+    }
+
+    return session.user;
+}
+
 
 /**
  * Function to get the authorization code from the request
@@ -91,34 +109,34 @@ async function getAuthorizationCode(
     req: Request,
     codeVerifier?: string, state?: string,
 ) {
-    const openIdClientConfig = await getClientConfig();
+        const openIdClientConfig = await getClientConfig();
 
-    // Get the current URL
-    const host =
-        req.get("x-forwarded-host") || req.get("host") || "localhost";
-    const protocol = req.get("x-forwarded-proto") || process.env.NODE_ENV === "production"
-        ? "https"
-        : "http";
-    const currentUrl = new URL(
-        `${protocol}://${host}${req.originalUrl}`,
-    );
-
-    try {
-        const tokenSet = await client.authorizationCodeGrant(
-            openIdClientConfig,
-            currentUrl,
-            {
-                pkceCodeVerifier: codeVerifier!,
-                expectedState: state!,
-            },
+        // Get the current URL
+        const host =
+            req.get("x-forwarded-host") || req.get("host") || "localhost";
+        const protocol = req.get("x-forwarded-proto") || process.env.NODE_ENV === "production"
+            ? "https"
+            : "http";
+        const currentUrl = new URL(
+            `${protocol}://${host}${req.originalUrl}`,
         );
-        return tokenSet;
-    } catch (err: any) {
-        if (err.response && err.body) {
-            console.error("OAuth error response:", err.body);
+
+        try {
+            const tokenSet = await client.authorizationCodeGrant(
+                openIdClientConfig,
+                currentUrl,
+                {
+                    pkceCodeVerifier: codeVerifier!,
+                    expectedState: state!,
+                },
+            );
+            return tokenSet;
+        } catch (err: any) {
+            if (err.response && err.body) {
+                console.error("OAuth error response:", err.body);
+            }
+            console.error("Full error:", err);
+            throw err;
         }
-        console.error("Full error:", err);
-        throw err;
     }
-}
 
