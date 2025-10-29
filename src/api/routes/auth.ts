@@ -103,10 +103,6 @@ async function getAuthorizationCode(
         `${protocol}://${host}${req.originalUrl}`,
     );
 
-    console.log("Current URL:", currentUrl.toString());
-    console.log("Code Verifier:", codeVerifier);
-    console.log("State:", state);
-
     try {
         const tokenSet = await client.authorizationCodeGrant(
             openIdClientConfig,
@@ -124,19 +120,5 @@ async function getAuthorizationCode(
         console.error("Full error:", err);
         throw err;
     }
-
-    // Send a request to the OpenID Provider to exchange the code for tokens
-    const tokenSet = await client.authorizationCodeGrant(
-        openIdClientConfig,
-        currentUrl,
-        {
-            pkceCodeVerifier: codeVerifier!,
-            expectedState: state!,
-        },
-    );
-
-    console.log("Token Set:", tokenSet);
-
-    return tokenSet;
 }
 
