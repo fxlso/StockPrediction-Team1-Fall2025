@@ -1,9 +1,30 @@
 import express, { type Request, type Response } from "express";
 import crypto from "crypto";
-import { createNewsArticle, getTickerIdBySymbol, upsertArticleTickerSentiment } from "../../db/db_api.js";
+import {
+    createNewsArticle,
+    doesNewsArticleIdExist, getAllArticlesWithTickerSentiments, getArticleTickerSentiments,
+    getTickerIdBySymbol,
+    upsertArticleTickerSentiment
+} from "../../db/db_api.js";
 import { tickers } from "../../db/schema.js";
 
 const articleRouter = express.Router();
+
+articleRouter.get("/", async (req, res) => {
+    const articles = await getAllArticlesWithTickerSentiments(undefined);
+    return res.json(articles);
+})
+
+articleRouter.get("/findSentiments/:tickerSymbol", async (req, res) => {
+    const symbol = req.params.tickerSymbol;
+    const tickerId = await getTickerIdBySymbol(symbol);
+    if (tickerId === null) {
+        return res.status(400).json({ error: "Invalid tickerSymbol; ticker not found" });
+    }
+
+    const articles = await getAllArticlesWithTickerSentiments(symbol);
+    return res.json(articles);
+})
 
 /**
  * Create a new news article
@@ -15,7 +36,7 @@ const articleRouter = express.Router();
  * articleId is sha256(url) hex
  */
 articleRouter.post("/", async (req: Request, res: Response) => {
-    const { title, url, publishedAt } = req.body;
+    const { title, url, summary, publishedAt } = req.body;
 
     if (typeof url !== "string" || url.trim().length === 0) {
         return res.status(400).json({ error: "Missing or invalid url" });
@@ -23,6 +44,10 @@ articleRouter.post("/", async (req: Request, res: Response) => {
 
     if (typeof title !== "string" || title.trim().length === 0) {
         return res.status(400).json({ error: "Missing or invalid title" });
+    }
+
+    if (url === undefined || title === undefined || publishedAt === undefined || summary === undefined) {
+        return res.status(400).json({ error: "Missing required fields. Must include title, url, summary and publishedAt." });
     }
 
     const normalizedUrl = url.trim();
@@ -56,11 +81,17 @@ articleRouter.post("/", async (req: Request, res: Response) => {
 
     const articleId = crypto.createHash("sha256").update(normalizedUrl).digest("hex");
 
+    const article = await doesNewsArticleIdExist(articleId);
+
+    if (article) {
+        return res.status(409).json({ error: "Article with the same URL already exists" });
+    }
+
     const newArticle = {
         articleId: articleId,
         url: normalizedUrl,
         title: normalizedTitle,
-        // match schema: Date | undefined
+        summary: summary,
         publishedAt: publishedAtDate,
     };
 
@@ -129,10 +160,36 @@ articleRouter.post("/:articleId/tickers", async (req: Request, res: Response) =>
 });
 
 /**
- * Get articleId by URL
+ * Get sentiments for all tickers on an article
  */
-articleRouter.get("/findArticleId/:url", async (req: Request, res: Response) => {
-    const url = req.params.url;
+articleRouter.get("/:articleId/tickers", async (req: Request, res: Response) => {
+    const articleId = req.params.articleId;
+
+    if (typeof articleId !== "string" || articleId.length === 0) {
+        return res.status(400).json({ error: "Invalid articleId" });
+    }
+
+    try {
+        const article = await doesNewsArticleIdExist(articleId);
+        if (!article) {
+            return res.status(404).json({ error: "Article not found" });
+        }
+
+        const tickersWithSentiment = await getArticleTickerSentiments(articleId);
+        return res.json(tickersWithSentiment);
+    } catch (error: any) {
+        return res.status(500).json({ error: error?.message ?? "Failed to get ticker sentiments for article" });
+    }
+});
+/**
+ * Get articleId by URL
+ * Expected body:
+ * {
+ *  url: string
+ * }
+ */
+articleRouter.get("/findArticleId", async (req: Request, res: Response) => {
+    const url = req.body.url;
 
     if (typeof url !== "string" || url.trim().length === 0) {
         return res.status(400).json({ error: "Missing or invalid url" });

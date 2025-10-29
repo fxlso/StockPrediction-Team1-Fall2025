@@ -17,6 +17,11 @@ tickerRouter.post("/", async (req: Request, res: Response) => {
         return res.status(400).json({ error: "Invalid ticker type" });
     }
 
+    const ticker = await getTickerBySymbol(symbol);
+    if (ticker) {
+        return res.status(409).json({error: "Ticker already exists"});
+    }
+
     try {
         const newTicker = await createTicker({ symbol, type });
         return res.status(201).json(newTicker);
@@ -31,7 +36,7 @@ tickerRouter.post("/", async (req: Request, res: Response) => {
 tickerRouter.get("/byType/:type", async (req: Request, res: Response) => {
     const type = req.params.type;
 
-    if (type === undefined || type === "all" || type === "") {
+    if (type === "all") {
         try {
             const tickers = await getAllTickers();
             return res.json(tickers);
@@ -78,6 +83,12 @@ tickerRouter.delete("/:symbol", async (req: Request, res: Response) => {
 
     if (typeof symbol !== "string") {
         return res.status(400).json({ error: "Invalid symbol" });
+    }
+
+    const exists = await getTickerBySymbol(symbol);
+
+    if (!exists) {
+        return res.status(404).json({error: "Ticker not found"});
     }
 
     try {
