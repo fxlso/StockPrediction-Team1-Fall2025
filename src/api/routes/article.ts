@@ -1,6 +1,11 @@
 import express, { type Request, type Response } from "express";
 import crypto from "crypto";
-import { createNewsArticle, getTickerIdBySymbol, upsertArticleTickerSentiment } from "../../db/db_api.js";
+import {
+    createNewsArticle,
+    doesNewsArticleIdExist,
+    getTickerIdBySymbol,
+    upsertArticleTickerSentiment
+} from "../../db/db_api.js";
 import { tickers } from "../../db/schema.js";
 
 const articleRouter = express.Router();
@@ -55,6 +60,12 @@ articleRouter.post("/", async (req: Request, res: Response) => {
     }
 
     const articleId = crypto.createHash("sha256").update(normalizedUrl).digest("hex");
+
+    const article = await doesNewsArticleIdExist(articleId);
+
+    if (article) {
+        return res.status(409).json({ error: "Article with the same URL already exists" });
+    }
 
     const newArticle = {
         articleId: articleId,

@@ -9,15 +9,15 @@ dotenv.config();
 const app: Express = express();
 const port = process.env.PORT || 5000;
 
-const TICKER_API_ROUTE = '/ticker';
-const ARTICLE_API_ROUTE = '/article';
-const USER_API_ROUTE = '/user';
+const TICKER_API_ROUTE = '/api/tickers';
+const ARTICLE_API_ROUTE = '/api/articles';
+const USER_API_ROUTE = '/api/users';
+
+app.use(express.json());
 
 app.use(TICKER_API_ROUTE, tickerRouter);
 app.use(ARTICLE_API_ROUTE, articleRouter);
 app.use(USER_API_ROUTE, userRouter);
-
-app.use(express.json());
 
 try {
     const httpServer = http.createServer(app);

@@ -233,6 +233,15 @@ export async function createNewsArticle(article: NewNewsArticle): Promise<NewsAr
     return rows[0] as NewsArticle;
 }
 
+export async function doesNewsArticleIdExist(articleId: string): Promise<boolean> {
+    const rows = await db
+        .select()
+        .from(newsArticles)
+        .where(eq(newsArticles.articleId, articleId));
+
+    return rows.length > 0;
+}
+
 /**
  * Upsert (insert-or-update) a record in news_article_tickers.
  * - If a row exists for the (articleId, tickerId) composite key, it updates the sentiment fields.
