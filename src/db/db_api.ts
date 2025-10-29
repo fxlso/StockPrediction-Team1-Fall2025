@@ -1,4 +1,3 @@
-// File: `src/db/db_api.ts`
 import { db } from "./client.js";
 import { eq, and } from "drizzle-orm";
 import {
