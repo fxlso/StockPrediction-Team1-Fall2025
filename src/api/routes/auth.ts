@@ -2,7 +2,6 @@ import express, { type Request, type Response } from "express";
 
 import * as client from 'openid-client'
 import { clientConfig, getClientConfig } from "../../lib/auth.js";
-import { getUserByEmail } from "../../db/db_api.js";
 
 export const authRouter = express.Router();
 
@@ -49,12 +48,12 @@ authRouter.get("/callback", async (req: Request, res: Response) => {
     res.clearCookie('auth_state');
 
     const tokenSet = await getAuthorizationCode(req, codeVerifier, authState);
+    const idToken = tokenSet.id_token;
+
+    console.log("ID Token:", idToken);
     const claims = tokenSet.claims();
-    console.log(claims)
-
-    // const dbUser = await getUserByEmail(claims.sub);
-
-
+    const userInfo = await client.fetchUserInfo(await getClientConfig(), tokenSet.access_token, claims?.sub!)
+    console.log("User Info:", userInfo);
 
 
 });
