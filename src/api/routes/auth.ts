@@ -84,19 +84,25 @@ authRouter.get("/callback", async (req: Request, res: Response) => {
 authRouter.get("/session", async (req: Request, res: Response) => {
     const sessionToken = req.cookies[sessionOptions.cookieName];
     if (!sessionToken) {
-        return null;
+        return res.status(401).json({ error: "No session" });
     }
+
 
     const session = await getSessionById(sessionToken);
     if (!session) {
-        return null;
+        return res.status(401).json({ error: "Invalid session" });
     }
 
     if (session.expiresAt < new Date()) {
-        return null;
+        return res.status(401).json({ error: "Session expired" });
     }
 
-    return session.user;
+    return res.json(session.user)
+});
+
+authRouter.post("/logout", async (req: Request, res: Response) => {
+    res.clearCookie(sessionOptions.cookieName);
+    return res.redirect(clientConfig.post_logout_redirect_uri);
 });
 
 
