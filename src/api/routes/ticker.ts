@@ -1,12 +1,13 @@
 import express, { type Request, type Response } from "express";
 import { createTicker, getAllTickers, getTickerBySymbol, getTickersByType, deleteTicker } from "../../db/db_api.js";
+import auth from "../../middleware/auth.js";
 
 const tickerRouter = express.Router();
 
 /**
  * Create a new ticker
  */
-tickerRouter.post("/", async (req: Request, res: Response) => {
+tickerRouter.post("/", auth, async (req: Request, res: Response) => {
     const { symbol, type } = req.body;
 
     if (typeof symbol !== "string" || typeof type !== "string") {

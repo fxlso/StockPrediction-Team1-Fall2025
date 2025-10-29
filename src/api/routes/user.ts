@@ -1,24 +1,23 @@
 import express, { type Request, type Response } from "express";
 import {
     createTicker,
-    getTickerIdBySymbol,
     addUserWatchlist,
     removeUserWatchlist,
     getUserById,
     getUserWatchlistTickers,
-    setUserNotifications, createUser,
+    setUserNotifications, createUser, getTickerBySymbol, getTickersByType,
 } from "../../db/db_api.js";
 import type { NewTicker, NewUser } from "../../db/schema.js";
+import auth from "../../middleware/auth.js";
 
 const userRouter = express.Router();
 
 /**
  * Toggle global notifications for a user
- * PATCH /:userId/notifications
  * body: { enabled: boolean }
  */
-userRouter.patch("/:userId/notifications", async (req: Request, res: Response) => {
-    const userId = req.params.userId;
+userRouter.patch("/notifications", auth, async (req: Request, res: Response) => {
+    const userId = req.user?.userId;
     const { enabled } = req.body;
 
     if (typeof userId !== "string" || userId.trim() === "") {
@@ -46,11 +45,10 @@ userRouter.patch("/:userId/notifications", async (req: Request, res: Response) =
 
 /**
  * Add ticker to user's watchlist (create ticker if missing)
- * POST /:userId/watchlist
  * body: { symbol: string, type?: "stock" | "crypto", notificationEnabled?: boolean }
  */
-userRouter.post("/:userId/watchlist", async (req: Request, res: Response) => {
-    const userId = req.params.userId;
+userRouter.post("/watchlist", auth, async (req: Request, res: Response) => {
+    const userId = req.user?.userId;
     const { symbol, type, notificationEnabled } = req.body;
 
     if (typeof userId !== "string" || userId.trim() === "") {
@@ -67,8 +65,9 @@ userRouter.post("/:userId/watchlist", async (req: Request, res: Response) => {
             return res.status(404).json({ error: "User not found" });
         }
 
-        let tickerId = await getTickerIdBySymbol(normalizedSymbol);
-        if (tickerId === null) {
+        let ticker = await getTickerBySymbol(normalizedSymbol);
+        let tickerId = ticker ? ticker.tickerId : null;
+        if (ticker === null) {
             // need type to create ticker
             if (type !== "stock" && type !== "crypto") {
                 return res.status(400).json({ error: "Ticker not found; provide type as 'stock' or 'crypto' to create it" });
@@ -79,8 +78,8 @@ userRouter.post("/:userId/watchlist", async (req: Request, res: Response) => {
         }
 
         const toInsert = {
-            userId,
-            tickerId,
+            userId: userId,
+            tickerId: tickerId as number,
             notificationEnabled: typeof notificationEnabled === "boolean" ? notificationEnabled : true,
         };
 
@@ -102,14 +101,13 @@ userRouter.post("/:userId/watchlist", async (req: Request, res: Response) => {
 /**
  * Set per-ticker watchlist notifications
  * Creates ticker/watchlist entry if missing
- * PATCH /:userId/watchlist/:symbol/notifications
  * body: {
  *  enabled: boolean,
- *  type?: "stock" | "crypto"  (we should leverage the vantage api for getting types).
+ *  type?: "stock" | "crypto"  // required if ticker needs to be created
  * }
  */
-userRouter.patch("/:userId/watchlist/:symbol/notifications", async (req: Request, res: Response) => {
-    const userId = req.params.userId;
+userRouter.patch("/watchlist/:symbol/notifications", auth, async (req: Request, res: Response) => {
+    const userId = req.user?.userId;
     const symbol = req.params.symbol;
     const { enabled, type } = req.body;
 
@@ -131,7 +129,8 @@ userRouter.patch("/:userId/watchlist/:symbol/notifications", async (req: Request
             return res.status(404).json({ error: "User not found" });
         }
 
-        let tickerId = await getTickerIdBySymbol(normalizedSymbol);
+        let ticker = await getTickerBySymbol(normalizedSymbol);
+        let tickerId = ticker ? ticker.tickerId : null;
         if (tickerId === null) {
             if (type !== "stock" && type !== "crypto") {
                 return res.status(400).json({ error: "Ticker not found; provide type as 'stock' or 'crypto' to create it" });
@@ -164,11 +163,10 @@ userRouter.patch("/:userId/watchlist/:symbol/notifications", async (req: Request
 
 /**
  * Remove ticker from user's watchlist
- * DELETE /:userId/watchlist/:symbol
  */
-userRouter.delete("/:userId/watchlist/:symbol", async (req: Request, res: Response) => {
+userRouter.delete("/watchlist/:symbol", auth, async (req: Request, res: Response) => {
     const userId = req.params.userId;
-    const symbol = req.params.symbol;
+    let symbol = req.params.symbol;
 
     if (typeof userId !== "string" || userId.trim() === "") {
         return res.status(400).json({ error: "Invalid userId" });
@@ -177,7 +175,7 @@ userRouter.delete("/:userId/watchlist/:symbol", async (req: Request, res: Respon
         return res.status(400).json({ error: "Invalid symbol" });
     }
 
-    const normalizedSymbol = symbol.trim();
+    symbol = symbol.trim();
 
     try {
         const user = await getUserById(userId);
@@ -185,7 +183,8 @@ userRouter.delete("/:userId/watchlist/:symbol", async (req: Request, res: Respon
             return res.status(404).json({ error: "User not found" });
         }
 
-        const tickerId = await getTickerIdBySymbol(normalizedSymbol);
+        const ticker = await getTickerBySymbol(symbol);
+        const tickerId = ticker ? ticker.tickerId : null;
         if (tickerId === null) {
             return res.status(404).json({ error: "Ticker not found" });
         }
@@ -202,10 +201,9 @@ userRouter.delete("/:userId/watchlist/:symbol", async (req: Request, res: Respon
 
 /**
  * Get all tickers in a user's watchlist
- * GET /:userId/watchlist
  */
-userRouter.get("/:userId/watchlist", async (req: Request, res: Response) => {
-    const userId = req.params.userId;
+userRouter.get("/:userId/watchlist", auth, async (req: Request, res: Response) => {
+    const userId = req.user?.userId;
 
     if (typeof userId !== "string" || userId.trim() === "") {
         return res.status(400).json({ error: "Invalid userId" });

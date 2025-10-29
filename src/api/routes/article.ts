@@ -15,7 +15,7 @@ articleRouter.get("/", auth, async (req, res) => {
     return res.json(articles);
 })
 
-articleRouter.get("/findSentiments/:tickerSymbol", auth, async (req, res) => {
+articleRouter.get("/findSentiments/:tickerSymbol", async (req, res) => {
     const symbol = req.params.tickerSymbol;
 
     if (symbol === undefined || symbol.trim().length === 0) {
@@ -42,7 +42,7 @@ articleRouter.get("/findSentiments/:tickerSymbol", auth, async (req, res) => {
  * }
  * articleId is sha256(url) hex
  */
-articleRouter.post("/", auth, async (req: Request, res: Response) => {
+articleRouter.post("/", async (req: Request, res: Response) => {
     const { title, url, summary, publishedAt } = req.body;
 
     if (typeof url !== "string" || url.trim().length === 0) {
@@ -120,7 +120,7 @@ articleRouter.post("/", auth, async (req: Request, res: Response) => {
  *  relevanceScore?: string|number|null
  * }
  */
-articleRouter.post("/:articleId/tickers", auth, async (req: Request, res: Response) => {
+articleRouter.post("/:articleId/tickers", async (req: Request, res: Response) => {
     const articleId = req.params.articleId;
     const { tickerSymbol, tickerSentimentScore, tickerSentimentLabel, relevanceScore } = req.body;
 
@@ -170,7 +170,7 @@ articleRouter.post("/:articleId/tickers", auth, async (req: Request, res: Respon
 /**
  * Get sentiments for all tickers on an article
  */
-articleRouter.get("/:articleId/tickers", auth, async (req: Request, res: Response) => {
+articleRouter.get("/:articleId/tickers", async (req: Request, res: Response) => {
     const articleId = req.params.articleId;
 
     if (typeof articleId !== "string" || articleId.length === 0) {
@@ -196,7 +196,7 @@ articleRouter.get("/:articleId/tickers", auth, async (req: Request, res: Respons
  *  url: string
  * }
  */
-articleRouter.get("/findArticleId", auth, async (req: Request, res: Response) => {
+articleRouter.get("/findArticleId", async (req: Request, res: Response) => {
     const url = req.body.url;
 
     if (typeof url !== "string" || url.trim().length === 0) {
