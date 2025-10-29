@@ -136,22 +136,6 @@ export async function createTicker(newTicker: NewTicker): Promise<Ticker> {
 }
 
 /**
- * Find ticker by symbol.
- */
-export async function getTickerBySymbol(symbol: string): Promise<Ticker | null> {
-    const rows = await db
-        .select()
-        .from(tickers)
-        .where(eq(tickers.symbol, symbol));
-
-    if (rows.length === 0) {
-        return null;
-    }
-
-    return rows[0] as Ticker;
-}
-
-/**
  * Get all Tickers
  */
 export async function getAllTickers(): Promise<Ticker[]> {
@@ -164,6 +148,7 @@ export async function getAllTickers(): Promise<Ticker[]> {
 
 /**
  * Get all tickers of a given type
+ * @param type The ticker type ("stock" or "crypto")
  */
 export async function getTickersByType(type: "stock" | "crypto"): Promise<Ticker[]> {
     const rows = await db
@@ -176,6 +161,7 @@ export async function getTickersByType(type: "stock" | "crypto"): Promise<Ticker
 
 /**
  * Delete a ticker by symbol. Returns true if a row was deleted.
+ * @param symbol The ticker symbol (i.e. AAPL or BTC)
  */
 export async function deleteTicker(symbol: string): Promise<boolean> {
     const result = await db
@@ -213,7 +199,7 @@ export async function getUserWatchlistTickers(userId: string): Promise<Ticker[]>
 
 /**
  * Get ticker ID by symbol
- * @param symbol The ticker symbol
+ * @param symbol The ticker symbol (i.e. AAPL or BTC)
  */
 export async function getTickerIdBySymbol(symbol: string): Promise<number | null> {
     const rows = await db
@@ -230,6 +216,8 @@ export async function getTickerIdBySymbol(symbol: string): Promise<number | null
 /**
  * Add an item to a user's watchlist.
  * Returns the inserted watchlist row (reads back to include DB defaults).
+ * @param entry The watchlist entry to add
+ * entry is expected to be { userId: string; tickerId: number; notificationEnabled?: boolean }
  */
 export async function addUserWatchlist(entry: NewUserWatchlist): Promise<UserWatchlist> {
     await db.insert(userWatchlist).values(entry);
@@ -248,6 +236,8 @@ export async function addUserWatchlist(entry: NewUserWatchlist): Promise<UserWat
 
 /**
  * Remove a watchlist entry. Returns true when a row was deleted.
+ * @param userId The user ID (sub attribute from Cognito)
+ * @param tickerId The ticker ID
  */
 export async function removeUserWatchlist(userId: string, tickerId: number): Promise<boolean> {
     const result = await db
@@ -292,6 +282,12 @@ export async function doesNewsArticleIdExist(articleId: string): Promise<boolean
  * Upsert (insert-or-update) a record in news_article_tickers.
  * - If a row exists for the (articleId, tickerId) composite key, it updates the sentiment fields.
  * - Otherwise inserts a new row.
+ * @param params The parameters for upsert
+ * - articleId The article ID (sha256 of url)
+ * - tickerId The ticker ID
+ * - tickerSentimentScore Optional sentiment score (-1.0 to 1.0)
+ * - tickerSentimentLabel Optional sentiment label (e.g. "positive", "negative", "neutral")
+ * - relevanceScore Optional relevance score (0.0 to 1.0)
  * Returns the final row.
  */
 export async function upsertArticleTickerSentiment(params: {
@@ -361,7 +357,7 @@ export async function upsertArticleTickerSentiment(params: {
 
 /**
  * Get sentiments for all tickers on an article
- * @param articleId The article ID (sha256 hash of url)
+ * @param articleId sha256 digest fo url
  */
 export async function getArticleTickerSentiments(articleId: string): Promise<(NewsArticleTicker & { symbol: string })[]> {
     const rows = await db
@@ -427,7 +423,7 @@ export async function getAllArticlesWithTickerSentiments(tickerSymbol?: string |
             .orderBy(newsArticles.publishedAt);
     }
 
-    // for each article, fetch all related ticker sentiments (including symbol)
+    // for each article, fetch all related ticker sentiments (includes symbol as well as id)
     const results = await Promise.all(
         articlesRaw.map(async (a: any) => {
             const tickers = await getArticleTickerSentiments(a.articleId);
