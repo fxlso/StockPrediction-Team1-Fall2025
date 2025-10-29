@@ -312,3 +312,85 @@ export async function upsertArticleTickerSentiment(params: {
 
     return finalRows[0] as NewsArticleTicker;
 }
+
+/**
+ * Get sentiments for all tickers on an article
+ * @param articleId
+ */
+export async function getArticleTickerSentiments(articleId: string): Promise<(NewsArticleTicker & { symbol: string })[]> {
+    const rows = await db
+        .select({
+            articleId: newsArticleTickers.articleId,
+            tickerId: newsArticleTickers.tickerId,
+            tickerSentimentScore: newsArticleTickers.tickerSentimentScore,
+            tickerSentimentLabel: newsArticleTickers.tickerSentimentLabel,
+            relevanceScore: newsArticleTickers.relevanceScore,
+            symbol: tickers.symbol,
+        })
+        .from(newsArticleTickers)
+        .innerJoin(tickers, eq(newsArticleTickers.tickerId, tickers.tickerId))
+        .where(eq(newsArticleTickers.articleId, articleId));
+
+    return rows as (NewsArticleTicker & { symbol: string })[];
+}
+
+/**
+ * Get all articles along with their associated ticker sentiments
+ * @param tickerSymbol Optional ticker symbol to filter articles by
+ */
+export async function getAllArticlesWithTickerSentiments(tickerSymbol?: string | null): Promise<any[]> {
+    let articlesRaw: any[];
+
+    if (tickerSymbol) {
+        const tickerId = await getTickerIdBySymbol(tickerSymbol);
+        if (tickerId === null) {
+            return [];
+        }
+
+        // join to filter articles that have this ticker
+        const rows = await db
+            .select({
+                articleId: newsArticles.articleId,
+                url: newsArticles.url,
+                title: newsArticles.title,
+                summary: newsArticles.summary,
+                publishedAt: newsArticles.publishedAt,
+            })
+            .from(newsArticles)
+            .innerJoin(newsArticleTickers, eq(newsArticles.articleId, newsArticleTickers.articleId))
+            .where(eq(newsArticleTickers.tickerId, tickerId))
+            .orderBy(newsArticles.publishedAt);
+
+        // dedupe articles (join may produce duplicates)
+        const map: Record<string, any> = {};
+        for (const r of rows) {
+            map[r.articleId] = r;
+        }
+        articlesRaw = Object.values(map);
+    } else {
+        // no filter: return all articles
+        articlesRaw = await db
+            .select({
+                articleId: newsArticles.articleId,
+                url: newsArticles.url,
+                title: newsArticles.title,
+                summary: newsArticles.summary,
+                publishedAt: newsArticles.publishedAt,
+            })
+            .from(newsArticles)
+            .orderBy(newsArticles.publishedAt);
+    }
+
+    // for each article, fetch all related ticker sentiments (including symbol)
+    const results = await Promise.all(
+        articlesRaw.map(async (a: any) => {
+            const tickers = await getArticleTickerSentiments(a.articleId);
+            return {
+                ...a,
+                tickers,
+            };
+        })
+    );
+
+    return results;
+}
