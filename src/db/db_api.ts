@@ -17,6 +17,7 @@ import {
     type NewNewsArticle,
     type NewsArticleTicker,
     type NewNewsArticleTicker,
+    sessions,
 } from "./schema.js";
 
 /**
@@ -42,17 +43,31 @@ export async function createUser(newUser: NewUser): Promise<User> {
 /**
  * Get a user by id.
  */
-export async function getUserById(userId: string): Promise<User | null> {
+export async function getUserByEmail(email: string): Promise<User | null> {
     const rows = await db
         .select()
         .from(users)
-        .where(eq(users.userId, userId));
+        .where(eq(users.email, email));
 
-    if (rows.length === 0) {
+    return rows[0] ?? null;
+}
+
+/**
+ * Get a user by session token.
+ */
+export async function getUserBySessionToken(sessionToken: string): Promise<User | null> {
+    const result = await db.select().from(sessions).innerJoin(
+        users,
+        eq(sessions.userId, users.userId)
+    ).where(
+        eq(sessions.sessionId, sessionToken)
+    ).limit(1);
+
+    if (result.length === 0) {
         return null;
     }
 
-    return rows[0] as User;
+    return result[0]?.users as User;
 }
 
 /**

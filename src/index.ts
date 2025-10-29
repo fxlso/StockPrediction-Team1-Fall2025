@@ -1,9 +1,11 @@
-import express, {type Express} from "express";
+import express, { type Express } from "express";
 import dotenv from "dotenv";
 import http from 'http';
 import tickerRouter from "./api/routes/ticker.js";
 import articleRouter from "./api/routes/article.js";
 import userRouter from "./api/routes/user.js";
+import { authRouter } from "./api/routes/auth.js";
+import cookieParser from "cookie-parser";
 dotenv.config();
 
 const app: Express = express();
@@ -12,12 +14,18 @@ const port = process.env.PORT || 5000;
 const TICKER_API_ROUTE = '/ticker';
 const ARTICLE_API_ROUTE = '/article';
 const USER_API_ROUTE = '/user';
+const AUTH_API_ROUTE = '/auth';
+
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.use(TICKER_API_ROUTE, tickerRouter);
 app.use(ARTICLE_API_ROUTE, articleRouter);
 app.use(USER_API_ROUTE, userRouter);
+app.use(AUTH_API_ROUTE, authRouter);
 
-app.use(express.json());
 
 try {
     const httpServer = http.createServer(app);
