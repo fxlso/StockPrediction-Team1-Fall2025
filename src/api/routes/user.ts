@@ -9,56 +9,9 @@ import {
     getUserWatchlistTickers,
     setUserNotifications, createUser,
 } from "../../db/db_api.js";
-import type {NewTicker, NewUser} from "../../db/schema.js";
+import type { NewTicker, NewUser } from "../../db/schema.js";
 
 const userRouter = express.Router();
-/**
- * Register a new user
- * POST /register
- * body: { userId: string, email: string, username?: string }
- */
-userRouter.post("/register", async (req: Request, res: Response) => {
-    const { userId, email, username } = req.body;
-
-    if (typeof userId !== "string" || userId.trim() === "") {
-        return res.status(400).json({ error: "Missing or invalid userId" });
-    }
-
-    if (typeof email !== "string" || email.trim() === "") {
-        return res.status(400).json({ error: "Missing or invalid email" });
-    }
-
-    const normalizedUserId = userId.trim();
-    const normalizedEmail = email.trim().toLowerCase();
-
-    if (username !== undefined && typeof username !== "string") {
-        return res.status(400).json({ error: "username must be a string" });
-    }
-
-    try {
-        // avoid duplicate userId
-        const existing = await getUserById(normalizedUserId);
-        if (existing) {
-            return res.status(409).json({ error: "User already exists" });
-        }
-
-        const newUser: NewUser = {
-            userId: normalizedUserId,
-            email: normalizedEmail,
-            username: username?.trim() || undefined,
-            // notificationEnabled, createdAt, updatedAt are handled by DB defaults
-        };
-
-        const created = await createUser(newUser);
-        return res.status(201).json(created);
-    } catch (err: any) {
-        // handle DB unique constraint on email (or other DB errors)
-        if (err?.message && /unique|duplicate|constraint/i.test(err.message)) {
-            return res.status(409).json({ error: "Email already in use" });
-        }
-        return res.status(500).json({ error: err?.message ?? "Failed to create user" });
-    }
-});
 
 /**
  * Toggle global notifications for a user
