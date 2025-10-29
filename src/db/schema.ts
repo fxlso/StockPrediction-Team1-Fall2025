@@ -23,14 +23,28 @@ export const users = mysqlTable(
     {
         userId: varchar("user_id", { length: 191 }).primaryKey(),
         email: varchar("email", { length: 254 }).notNull(),
-        username: varchar("username", { length: 191 }),
         notificationEnabled: boolean("notification_enabled").notNull().default(true),
         createdAt: timestamp("created_at").defaultNow().notNull(),
         updatedAt: timestamp("updated_at"),
     },
     (t) => ({
         emailUq: uniqueIndex("users_email_uq").on(t.email),
-        usernameUq: uniqueIndex("users_username_uq").on(t.username),
+    })
+);
+
+export const sessions = mysqlTable(
+    "sessions",
+    {
+        sessionId: varchar("session_id", { length: 191 }).primaryKey(),
+        userId: varchar("user_id", { length: 191 })
+            .notNull()
+            .references(() => users.userId, { onDelete: "cascade", onUpdate: "cascade" }),
+        createdAt: timestamp("created_at").defaultNow().notNull(),
+        expiresAt: timestamp("expires_at").notNull(),
+    },
+    (t) => ({
+        userIdx: index("sessions_user_idx").on(t.userId),
+        expiresAtIdx: index("sessions_expires_at_idx").on(t.expiresAt),
     })
 );
 
