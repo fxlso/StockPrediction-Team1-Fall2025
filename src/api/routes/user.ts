@@ -202,7 +202,7 @@ userRouter.delete("/watchlist/:symbol", auth, async (req: Request, res: Response
 /**
  * Get all tickers in a user's watchlist
  */
-userRouter.get("/:userId/watchlist", auth, async (req: Request, res: Response) => {
+userRouter.get("/watchlist", auth, async (req: Request, res: Response) => {
     const userId = req.user?.userId;
 
     if (typeof userId !== "string" || userId.trim() === "") {
