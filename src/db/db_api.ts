@@ -361,7 +361,7 @@ export async function upsertArticleTickerSentiment(params: {
 
 /**
  * Get sentiments for all tickers on an article
- * @param articleId
+ * @param articleId The article ID (sha256 hash of url)
  */
 export async function getArticleTickerSentiments(articleId: string): Promise<(NewsArticleTicker & { symbol: string })[]> {
     const rows = await db
