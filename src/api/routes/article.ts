@@ -6,7 +6,6 @@ import {
     getTickerIdBySymbol,
     upsertArticleTickerSentiment
 } from "../../db/db_api.js";
-import { tickers } from "../../db/schema.js";
 
 const articleRouter = express.Router();
 
@@ -22,7 +21,7 @@ articleRouter.get("/findSentiments/:tickerSymbol", async (req, res) => {
         return res.status(400).json({ error: "Invalid tickerSymbol; ticker not found" });
     }
 
-    const articles = await getAllArticlesWithTickerSentiments(symbol);
+    const articles = await getAllArticlesWithTickerSentiments(symbol    );
     return res.json(articles);
 })
 
@@ -32,6 +31,7 @@ articleRouter.get("/findSentiments/:tickerSymbol", async (req, res) => {
  *  title: string,
  *  url: string,
  *  publishedAt?: string
+ *  summary?: string
  * }
  * articleId is sha256(url) hex
  */

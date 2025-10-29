@@ -1,4 +1,3 @@
-// File: `src/db/db_api.ts`
 import { db } from "./client.js";
 import { eq, and } from "drizzle-orm";
 import {
@@ -362,7 +361,7 @@ export async function upsertArticleTickerSentiment(params: {
 
 /**
  * Get sentiments for all tickers on an article
- * @param articleId
+ * @param articleId The article ID (sha256 hash of url)
  */
 export async function getArticleTickerSentiments(articleId: string): Promise<(NewsArticleTicker & { symbol: string })[]> {
     const rows = await db

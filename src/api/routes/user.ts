@@ -1,4 +1,3 @@
-// File: `src/api/routes/user.ts`
 import express, { type Request, type Response } from "express";
 import {
     createTicker,
