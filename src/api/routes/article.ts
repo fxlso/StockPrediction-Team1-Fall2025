@@ -7,6 +7,7 @@ import {
     upsertArticleTickerSentiment
 } from "../../db/db_api.js";
 import auth from "../../middleware/auth.js";
+import {getDateFromCompact} from "../../util/utils.js";
 
 const articleRouter = express.Router();
 
@@ -67,15 +68,9 @@ articleRouter.post("/", async (req: Request, res: Response) => {
             return res.status(400).json({ error: "publishedAt must be a string" });
         }
 
-        // Accept ISO 8601 or compact format YYYYMMDDTHHMMSS (e.g. 20251028T170116)
-        const compactRe = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})$/;
-        let parsed: Date;
-        const m = publishedAt.match(compactRe);
-        if (m) {
-            const [, y, mo, d, hh, mm, ss] = m;
-            const iso = `${y}-${mo}-${d}T${hh}:${mm}:${ss}Z`;
-            parsed = new Date(iso);
-        } else {
+        let parsed = getDateFromCompact(publishedAt);
+
+        if (parsed === null) {
             parsed = new Date(publishedAt);
         }
 
