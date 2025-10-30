@@ -6,6 +6,7 @@ import articleRouter from "./api/routes/article.js";
 import userRouter from "./api/routes/user.js";
 import { authRouter } from "./api/routes/auth.js";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 dotenv.config();
 
 const app: Express = express();
@@ -23,6 +24,8 @@ app.use(TICKER_API_ROUTE, tickerRouter);
 app.use(ARTICLE_API_ROUTE, articleRouter);
 app.use(USER_API_ROUTE, userRouter);
 app.use(AUTH_API_ROUTE, authRouter);
+
+app.use(cors({origin: ["http://localhost:3000"], credentials: true}));
 
 try {
     const httpServer = http.createServer(app);
