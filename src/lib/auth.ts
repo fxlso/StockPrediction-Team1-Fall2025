@@ -9,10 +9,10 @@ export const clientConfig = {
     client_secret: process.env.AUTH_CLIENT_SECRET!,
     scope: process.env.AUTH_SCOPE!,
     redirect_uri: `${process.env.APP_URL!}/api/auth/callback`,
-    post_logout_redirect_uri: `${process.env.APP_URL!}`,
+    post_logout_redirect_uri: `${process.env.FRONTEND_URL!}`,
     response_type: "code",
     grant_type: "authorization_code",
-    post_login_route: `${process.env.APP_URL!}/`,
+    post_login_route: `${process.env.FRONTEND_URL!}/dashboard`,
     login_forbidden_route: `${process.env.APP_URL!}/forbidden`,
     code_challenge_method: "S256",
 };

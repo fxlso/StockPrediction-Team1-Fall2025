@@ -28,7 +28,7 @@
     // "noImplicitReturns": true,
     // "noImplicitOverride": true,
     // "noUnusedLocals": true,
-    // "noUnusedParameters": true,
+    // "noUnusedrameters": true,
     // "noFallthroughCasesInSwitch": true,
     // "noPropertyAccessFromIndexSignature": true,
 
