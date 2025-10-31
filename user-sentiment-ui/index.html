@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>User Sentiment Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="bar">
+    <h1>Stock News Sentiment</h1>
+    <input id="tickerInput" placeholder="Search symbol (e.g., AAPL, BTC)" />
+    <button id="loadButton">Load</button>
+    <span id="status"></span>
+  </header>
+
+  <section class="summary">
+    <div class="chip"><span>Latest</span><strong id="latestScore">-</strong></div>
+    <div class="chip"><span>7-day avg</span><strong id="avg7">-</strong></div>
+    <div class="chip"><span>30-day avg</span><strong id="avg30">-</strong></div>
+    <div class="chip"><span>Label</span><strong id="label">-</strong></div>
+  </section>
+
+  <section>
+    <h2>30-day Sentiment Trend</h2>
+    <canvas id="chart" width="800" height="240"></canvas>
+  </section>
+
+  <section>
+    <h2>Recent Headlines</h2>
+    <div id="articles"></div>
+  </section>
+
+  <script src="main.js"></script>
+</body>
+</html>
