@@ -49,7 +49,7 @@ function App() {
             {/* routes for logged-in users */}
             <Route path="/dashboard" element={<Dashboard user={user} />} />
             <Route path="/watchlist" element={<Watchlist user={user} />} />
-            {/* <Route path="*" element={<Navigate to="/dashboard" />} /> */}
+            <Route path="*" element={<Navigate to="/dashboard" />} />
           </>
         )}
       </Routes>

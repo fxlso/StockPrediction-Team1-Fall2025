@@ -10,7 +10,7 @@ export async function checkSession(): Promise<User | null> {
         const res = await fetch(`${BACKEND_URL}/api/auth/session`, {
             credentials: "include",
         });
-        console.log(res)
+        console.log('res data: ', res)
         if (!res.ok) {
             return null;
         }
