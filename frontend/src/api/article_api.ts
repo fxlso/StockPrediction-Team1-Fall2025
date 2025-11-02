@@ -1,6 +1,10 @@
 import type { NewsArticle } from "../../../src/db/schema";
 
 const BACKEND_URL = `${import.meta.env.VITE_BACKEND_URL}`;
+const TICKER_API_ROUTE = '/api/tickers';
+const ARTICLE_API_ROUTE = '/api/articles';
+const USER_API_ROUTE = '/api/users';
+const AUTH_API_ROUTE = '/api/auth';
 
 export interface TickerSentiment {
   tickerId: number;
@@ -16,7 +20,7 @@ export interface ArticleWithTickers extends NewsArticle {
 
 export async function getNewsArticles(): Promise<ArticleWithTickers[]> {
     try {
-        const response = await fetch(`${BACKEND_URL}/`);
+        const response = await fetch(`${BACKEND_URL}/${ARTICLE_API_ROUTE}/`);
 
         console.log(`getnewsarticle frotnend...`, response)
         if (!response.ok) {

@@ -19,7 +19,6 @@ const TICKER_API_ROUTE = '/api/tickers';
 const ARTICLE_API_ROUTE = '/api/articles';
 const USER_API_ROUTE = '/api/users';
 const AUTH_API_ROUTE = '/api/auth';
-const SEED_API_ROUTE = '/seed';
 
 app.use(express.json());
 app.use(cookieParser());
@@ -33,7 +32,6 @@ app.use(ARTICLE_API_ROUTE, articleRouter);
 app.use(USER_API_ROUTE, userRouter);
 app.use(AUTH_API_ROUTE, authRouter);
 
-// app.use(SEED_API_ROUTE, publicDataRouter);
 app.get("/seed", async (req, res) => {
     await preSeed();
     res.json({ message: "Pre-Seeded Data" });
