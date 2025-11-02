@@ -16,7 +16,7 @@ export interface ArticleWithTickers extends NewsArticle {
 
 export async function getNewsArticles(): Promise<ArticleWithTickers[]> {
     try {
-        const response = await fetch(`${BACKEND_URL}/seed/articles`);
+        const response = await fetch(`${BACKEND_URL}/`);
 
         console.log(`getnewsarticle frotnend...`, response)
         if (!response.ok) {
