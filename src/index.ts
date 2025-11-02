@@ -6,6 +6,7 @@ import articleRouter from "./api/routes/article.js";
 import userRouter from "./api/routes/user.js";
 import publicDataRouter from "./api/public_routes/public_data_router.js";
 import { authRouter } from "./api/routes/auth.js";
+import cors from 'cors';
 
 import cookieParser from "cookie-parser";
 dotenv.config();
@@ -21,6 +22,7 @@ const SEED_API_ROUTE = '/seed';
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(cors());
 
 app.use(TICKER_API_ROUTE, tickerRouter);
 app.use(ARTICLE_API_ROUTE, articleRouter);
@@ -33,8 +35,12 @@ app.use(SEED_API_ROUTE, publicDataRouter);
 try {
     const httpServer = http.createServer(app);
     httpServer.listen(port, () => {
-        console.log(`[Server]: HTTP Server now running at http://localhost:${port}`);
+        console.log(`Server: HTTP Server now running at http://localhost:${port}`);
     });
 } catch (error) {
     console.error('Failed to start HTTP server:', error);
 }
+
+app.listen(process.env.PORT, () => {
+  console.log('Server listening on port', process.env.PORT);
+});

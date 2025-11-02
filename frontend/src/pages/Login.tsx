@@ -7,7 +7,7 @@ export default function Login() {
     window.location.href = `${backendUrl}/api/auth/login`;
   }
 
-  return (
+  return (    
     <Flex
       direction="column"
       align="center"

@@ -19,7 +19,7 @@ function App() {
   }, []);
 
   async function verifyLogin() {
-    console.log("verify before")
+    console.log("verify before");
     const isUser = await checkSession();
     console.log("user @verifyLogin():", isUser);
     setUser(isUser);
@@ -34,24 +34,24 @@ function App() {
   return (
     <>
       {/* use conditional renders based on if user is logged in and pass down user object for attributes*/}
-      
+
       {/* {user && <Navbar user={user} handleLogout={handleLogout} />} */}
-      <Navbar user={user} handleLogout={handleLogout}/>
+      <Navbar user={user} handleLogout={handleLogout} />
       <Routes>
         {/* route for nonlogged-in users */}
-        {/* {!user ? ( */}
-          {/* <> */}
-          <Route path="/login" element={<Login/>} />
-          {/* <Route path="*" element={<Navigate to="/login" />} /> */}
-          {/* </> */}
-        {/* ) : ( */}
-          {/* <> */}
+        {!user ? (
+          <>
+            <Route path="/login" element={<Login />} />
+            <Route path="*" element={<Navigate to="/login" />} />
+          </>
+        ) : (
+          <>
             {/* routes for logged-in users */}
             <Route path="/dashboard" element={<Dashboard user={user} />} />
             <Route path="/watchlist" element={<Watchlist user={user} />} />
             {/* <Route path="*" element={<Navigate to="/dashboard" />} /> */}
-          {/* </> */}
-        {/* )} */}
+          </>
+        )}
       </Routes>
     </>
   );
