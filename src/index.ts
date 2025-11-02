@@ -6,6 +6,7 @@ import articleRouter from "./api/routes/article.js";
 import userRouter from "./api/routes/user.js";
 import { authRouter } from "./api/routes/auth.js";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 dotenv.config();
 
 const app: Express = express();
@@ -16,6 +17,9 @@ const ARTICLE_API_ROUTE = '/api/articles';
 const USER_API_ROUTE = '/api/users';
 const AUTH_API_ROUTE = '/api/auth';
 
+app.use(cors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:5000',
+}));
 app.use(express.json());
 app.use(cookieParser());
 

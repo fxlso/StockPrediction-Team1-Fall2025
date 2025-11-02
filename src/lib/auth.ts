@@ -7,7 +7,7 @@ export const clientConfig = {
     audience: process.env.APP_URL!,
     client_id: process.env.AUTH_CLIENT_ID!,
     client_secret: process.env.AUTH_CLIENT_SECRET!,
-    scope: process.env.AUTH_SCOPE!,
+    scope: "email openid phone",
     redirect_uri: `${process.env.APP_URL!}/api/auth/callback`,
     post_logout_redirect_uri: `${process.env.APP_URL!}`,
     response_type: "code",

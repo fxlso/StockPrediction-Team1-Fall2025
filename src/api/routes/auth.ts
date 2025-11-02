@@ -66,7 +66,7 @@ authRouter.get("/callback", async (req: Request, res: Response) => {
     }
 
     const sessionToken = randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + sessionOptions.ttl); // 7 days
+    const expiresAt = new Date(Date.now() + sessionOptions.ttl * 1000); // 7 days
 
     await createSession(sessionToken, dbUser.userId, expiresAt);
 
