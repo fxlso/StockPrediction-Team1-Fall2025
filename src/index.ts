@@ -9,6 +9,7 @@ import { authRouter } from "./api/routes/auth.js";
 import cors from 'cors';
 
 import cookieParser from "cookie-parser";
+import {preSeed} from "./db/db_api.js";
 dotenv.config();
 
 const app: Express = express();
@@ -32,7 +33,11 @@ app.use(ARTICLE_API_ROUTE, articleRouter);
 app.use(USER_API_ROUTE, userRouter);
 app.use(AUTH_API_ROUTE, authRouter);
 
-app.use(SEED_API_ROUTE, publicDataRouter);
+// app.use(SEED_API_ROUTE, publicDataRouter);
+app.get("/seed", async (req, res) => {
+    await preSeed();
+    res.json({ message: "Pre-Seeded Data" });
+});
 
 
 try {
