@@ -6,6 +6,7 @@ const ARTICLE_API_ROUTE = '/api/articles';
 const USER_API_ROUTE = '/api/users';
 const AUTH_API_ROUTE = '/api/auth';
 
+// http://localhost:5000/api/articles/
 export interface TickerSentiment {
   tickerId: number;
   symbol: string;
@@ -13,14 +14,15 @@ export interface TickerSentiment {
   tickerSentimentLabel: string | null;
   relevanceScore: string | null;
 }
-
 export interface ArticleWithTickers extends NewsArticle {
   tickers: TickerSentiment[];
 }
 
 export async function getNewsArticles(): Promise<ArticleWithTickers[]> {
     try {
-        const response = await fetch(`${BACKEND_URL}/${ARTICLE_API_ROUTE}/`);
+        const response = await fetch(`${BACKEND_URL}${ARTICLE_API_ROUTE}/`, {
+            credentials: "include",
+        });
 
         console.log(`getnewsarticle frotnend...`, response)
         if (!response.ok) {
@@ -29,7 +31,7 @@ export async function getNewsArticles(): Promise<ArticleWithTickers[]> {
         }
 
         const data = await response.json();
-        console.log(`getnewsarticlewrong`,data);
+        console.log(`getnewsarticle`,data);
         return data;
 
     } catch (error) {
