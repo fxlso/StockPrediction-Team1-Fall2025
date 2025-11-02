@@ -29,11 +29,16 @@ resource "aws_instance" "stock_ec2" {
   vpc_security_group_ids = [var.ec2_sg_id]  # Attach the EC2 security group
   key_name               = var.key_name  # SSH key name from variable
 
-  user_data = templatefile("rds_install.sh", {
+  user_data = templatefile("api_install.sh", {
     db_username = var.db_username
     db_password = var.db_password
     db_name     = var.db_name
     db_endpoint = var.db_endpoint
+    app_url     = var.app_url
+    auth_issuer = var.auth_issuer
+    auth_client_id     = var.auth_client_id
+    auth_client_secret = var.auth_client_secret
+    repo_url    = var.repo_url
   })
 
   tags = {

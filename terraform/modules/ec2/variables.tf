@@ -5,3 +5,8 @@ variable "db_username" {}
 variable "db_password" {}
 variable "key_name" {}
 variable "ec2_sg_id" {}
+variable "app_url" {}
+variable "auth_issuer" {}
+variable "auth_client_id" {}
+variable "auth_client_secret" {}
+variable "repo_url" {}

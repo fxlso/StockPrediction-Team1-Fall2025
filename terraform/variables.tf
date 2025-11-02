@@ -21,3 +21,8 @@ variable "key_name" {
   type        = string
   sensitive   = true
 }
+
+variable "repo_url" {
+  description = "Git repository URL for the application code"
+  type        = string
+}
