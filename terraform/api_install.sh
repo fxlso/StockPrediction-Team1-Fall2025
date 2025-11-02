@@ -13,7 +13,7 @@ export AUTH_CLIENT_SECRET=${auth_client_secret}
 yum install -y git
 yum install -y nodejs npm
 mkdir -p /opt/api
-git clone ${repo_url} /opt/api
+git clone -b terraform ${repo_url} /opt/api
 cd /opt/api
 npm install
 npm run build
